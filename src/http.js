@@ -45,9 +45,9 @@ export function createHttpClient(defaultConfig = {}) {
      */
     async function request(endpoint, options = {}) {
         const method = (options.method || state.method).toUpperCase();
-        const fullUrl = `${state.baseUrl}${endpoint}`;
 
         let requestConfig = {
+            url: `${state.baseUrl}${endpoint}`,
             method,
             headers: { ...state.headers, ...(options.headers || {}) },
         };
@@ -73,8 +73,12 @@ export function createHttpClient(defaultConfig = {}) {
             requestConfig = await interceptor(requestConfig) || requestConfig;
         }
 
+        // Destructure url out so we don't pass an extra property into fetch()'s init object
+        const { url, ...fetchOptions } = requestConfig;
+
         try {
-            let response = await fetch(fullUrl, requestConfig);
+            // 3. Fetch using the (potentially transformed) url
+            let response = await fetch(url, fetchOptions);
             clearTimeout(timeoutId);
 
             // Run response interceptors (e.g., logging, metrics, token refresh)
@@ -164,4 +168,30 @@ export function createHttpClient(defaultConfig = {}) {
         // Expose utility function
         buildQueryString
     };
+}
+
+// Optional reusable helper to run requests through a proxy url, for things like CORS
+/*
+    EXAMPLE USAGE:
+
+    import { createHttpClient, createProxyInterceptor } from './http.js';
+
+    const api = createHttpClient({
+        baseUrl: 'https://api.targetdomain.com'
+    });
+
+    // Plug in the proxy behavior in one readable line
+    api.addRequestInterceptor(
+        createProxyInterceptor('https://yourdomain.com/proxy.php?url=')
+    );
+
+    // Every method (.get, .post, .put, .delete) automatically builds the full target URL
+    // with query params first, then encodes and routes it through your PHP/proxy script:
+    const data = await api.get('/events', { widgetid: '123', eventid: '456' });
+*/
+export function createProxyInterceptor(proxyUrl) {
+    return (config) => ({
+        ...config,
+        url: `${proxyUrl}${encodeURIComponent(config.url)}`
+    });
 }
