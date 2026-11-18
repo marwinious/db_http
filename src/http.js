@@ -111,6 +111,32 @@ export function createHttpClient(defaultConfig = {}) {
         }
     }
 
+    // Optional reusable helper to run requests through a proxy url, for things like CORS
+    /*
+        EXAMPLE USAGE:
+
+        import { createHttpClient } from './http.js';
+
+        const api = createHttpClient({
+            baseUrl: 'https://api.targetdomain.com'
+        });
+
+        // Plug in the proxy behavior in one readable line
+        api.addRequestInterceptor(
+            api.createProxyInterceptor('https://yourdomain.com/proxy.php?url=')
+        );
+
+        // Every method (.get, .post, .put, .delete) automatically builds the full target URL
+        // with query params first, then encodes and routes it through your PHP/proxy script:
+        const data = await api.get('/events', { widgetid: '123', eventid: '456' });
+    */
+    function createProxyInterceptor(proxyUrl) {
+        return (config) => ({
+            ...config,
+            url: `${proxyUrl}${encodeURIComponent(config.url)}`
+        });
+    }
+
     // Public API returned by factory
     return {
         // Core request executor
@@ -165,33 +191,9 @@ export function createHttpClient(defaultConfig = {}) {
             return this;
         },
 
+        createProxyInterceptor,
+
         // Expose utility function
         buildQueryString
     };
-}
-
-// Optional reusable helper to run requests through a proxy url, for things like CORS
-/*
-    EXAMPLE USAGE:
-
-    import { createHttpClient, createProxyInterceptor } from './http.js';
-
-    const api = createHttpClient({
-        baseUrl: 'https://api.targetdomain.com'
-    });
-
-    // Plug in the proxy behavior in one readable line
-    api.addRequestInterceptor(
-        createProxyInterceptor('https://yourdomain.com/proxy.php?url=')
-    );
-
-    // Every method (.get, .post, .put, .delete) automatically builds the full target URL
-    // with query params first, then encodes and routes it through your PHP/proxy script:
-    const data = await api.get('/events', { widgetid: '123', eventid: '456' });
-*/
-export function createProxyInterceptor(proxyUrl) {
-    return (config) => ({
-        ...config,
-        url: `${proxyUrl}${encodeURIComponent(config.url)}`
-    });
 }
