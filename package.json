@@ -1,0 +1,28 @@
+{
+    "name": "db_http",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "main": "./dist/db_http.js",
+    "module": "./dist/db_http.js",
+    "exports": {
+        ".": "./dist/db_http.js"
+    },
+    "directories": {
+        "test": "tests"
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "vitest",
+        "testui": "vitest --ui"
+    },
+    "devDependencies": {
+        "@vitest/ui": "^5.0.4",
+        "terser": "^5.51.2",
+        "vite": "^8.3.4",
+        "vitest": "^5.0.4"
+    },
+    "packageManager": "yarn@4.5.3+sha512.3003a14012e2987072d244c720506549c1aab73ee728208f1b2580a9fd67b92d61ba6b08fe93f6dce68fd771e3af1e59a0afa28dd242dd0940d73b95fedd4e90"
+}
